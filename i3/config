@@ -42,7 +42,8 @@ floating_modifier $mod
 
 
 # Lock shortcut
-bindsym $mod+p exec --no-startup-id i3lock
+set $i3lockwall sh ~/.config/i3/lockscript.sh
+bindsym $mod+p exec --no-startup-id $i3lockwall
 
 ##################################### Monitor / Layout
 # Monitor order
@@ -51,13 +52,23 @@ bindsym $mod+p exec --no-startup-id i3lock
 #
 
 # Disable title bar
-default_border pixel 1
-default_floating_border pixel 1
+#default_border pixel 1
+#default_floating_border pixel 1
+
+for_window [class=".*"] border pixel 0
+#gaps inner all set 20
+#gaps outer current plus 5
+#gaps horizontal current plus 40
+#gaps outer current toggle 60
+
+
 
 # Launch Mega X in float mode
 for_window [class="Mega" instance="mega"] floating enable
 
 #######################################
+
+
 
 
 # start a terminal
@@ -134,6 +145,7 @@ bindsym $mod+space focus mode_toggle
 bindsym $mod+a focus parent
 
 
+exec --no-startup-id feh --bg-scale ~/.config/i3/background.png
 
 # focus the child container
 #bindsym $mod+d focus child
