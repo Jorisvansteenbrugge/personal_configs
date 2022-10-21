@@ -99,3 +99,4 @@
   (setq which-key-idle-delay 0.2))
 
 
+;;(setq-default TeX-master "master") ; All master files called "master"
