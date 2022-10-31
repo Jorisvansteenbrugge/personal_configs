@@ -1,4 +1,9 @@
-;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+;;; Config.el --- test                               -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2022  Joris van Steenbrugge
+
+;; Author: Joris van Steenbrugge;;; $DOOMDIR/config.el -*- lexical-binding: t; -*- <jorisvsteenbrugge@protonmail.com>
+;; Keywords:
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
@@ -103,3 +108,18 @@
 
 ;;(setq-default TeX-master "master") ; All master files called "master"
 (map! "<escape>" #'doom/escape)
+
+(after! ESS
+
+
+  (defun joris-insert-rassign ()
+    (interactive)
+    (insert "<-"))
+  (defun joris-insert-pipe ()
+    (interactive)
+    (insert "|>"))
+
+  (map! :map ess-r-mode-map
+        "C-S-m" #'joris-insert-pipe
+        "C-<" #'joris-insert-rassign)
+)
