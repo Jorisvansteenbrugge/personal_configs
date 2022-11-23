@@ -109,9 +109,8 @@
 ;;(setq-default TeX-master "master") ; All master files called "master"
 (map! "<escape>" #'doom/escape)
 
-(after! ESS
-
-
+(after! ess
+  (add-hook! 'ess-r-mode-hook (flycheck-mode -1) )
   (defun joris-insert-rassign ()
     (interactive)
     (insert "<-"))
@@ -122,4 +121,81 @@
   (map! :map ess-r-mode-map
         "C-S-m" #'joris-insert-pipe
         "C-<" #'joris-insert-rassign)
+  (map! :map inferior-ess-r-mode-map
+        "C-S-m" #'joris-insert-pipe
+        "C-<" #'joris-insert-rassign)
 )
+
+
+(after! LaTeX/PS
+  (defun joris-insert-itallics ()
+    (interactive)
+    (insert "\textit{}"))
+
+  (map! :map latex-mode-map
+        "C-i" #'joris-insert-itallics)
+  )
+
+
+(defun dtm-ibuffer-workspace-filter-groups ()
+  "Generate value for `ibuffer-filter-groups' based on perspectives."
+  (mapcar #'(lambda (pn) (list pn (cons 'persp pn)))
+          (nconc
+           (cl-delete persp-nil-name (persp-names-current-frame-fast-ordered)
+                      :test 'string=)
+           (list persp-nil-name))))
+
+
+
+
+(defun dtm-ibuffer-group-by-workspace-h ()
+  "Set the current filter groups to filter by perspective.
+Based on `ibuffer-projectile-set-filter-groups' from the ibuffer-projectile package:
+https://github.com/purcell/ibuffer-projectile"
+  (interactive)
+  (setq ibuffer-filter-groups (dtm-ibuffer-workspace-filter-groups))
+  (message "persp-ibuffer: grouping buffers by workspace")
+  (let ((ibuf (get-buffer "*Ibuffer*")))
+    (when ibuf
+      (with-current-buffer ibuf
+        (pop-to-buffer ibuf)
+        (ibuffer-update nil t)))))
+
+
+(defun dtm-doctor-running-p ()
+  "Returns t when the doom doctor CLI is running.
+Required because doctor sets `noninteractive' to nil."
+  (boundp 'doom-doctor--errors))
+
+(after! ibuffer
+  ;; Ref: https://gist.github.com/Bad-ptr/1aca1ec54c3bdb2ee80996eb2b68ad2d#file-persp-mode-ibuffer-groups-el
+  (unless (dtm-doctor-running-p)
+    (define-ibuffer-filter persp
+        "Toggle current view to buffers of current perspective."
+      (:description "persp-mode"
+       :reader (persp-read-persp nil nil (safe-persp-name (get-frame-persp)) t))
+      (cl-find buf (safe-persp-buffers (persp-get-by-name qualifier)))))
+
+ ;; Group buffers based on perspective/workspace
+  (add-hook 'ibuffer-hook #'dtm-ibuffer-group-by-workspace-h))
+
+(use-package! good-scroll
+  :config
+  (good-scroll-mode +1)
+  (defun dtm/good-scroll-down-half ()
+    (interactive)
+    (good-scroll-move (/ (good-scroll--window-usable-height) 2)))
+
+
+  (defun dtm/good-scroll-up-half ()
+    (interactive)
+    (good-scroll-move (/ (good-scroll--window-usable-height) -2)))
+  (map!
+        "C-v" #'dtm/good-scroll-down-half
+        "M-v" #'dtm/good-scroll-up-half)
+
+  (setq! good-scroll-duration .25
+         good-scroll-algorithm 'good-scroll-linear
+         good-scroll-step (round (/ (display-pixel-height) 8)))
+
+  )
