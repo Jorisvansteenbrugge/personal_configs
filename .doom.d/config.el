@@ -82,6 +82,8 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+(setq-default fill-column 90)
+
 (use-package! elpy
   :commands elpy-enable
   :init
@@ -127,13 +129,16 @@
 )
 
 
-(after! LaTeX/PS
+(after! tex-mode
   (defun joris-insert-itallics ()
     (interactive)
-    (insert "\textit{}"))
+    (insert "\\textit{}"))
 
-  (map! :map latex-mode-map
-        "C-i" #'joris-insert-itallics)
+  (add-hook! 'LaTeX-mode-hook (auto-fill-mode 1)) ; Enable auto fill mode by default
+
+
+  (map! :map LaTeX-mode-map
+        "C-S-i" #'joris-insert-itallics)
   )
 
 
@@ -196,6 +201,14 @@ Required because doctor sets `noninteractive' to nil."
 
   (setq! good-scroll-duration .25
          good-scroll-algorithm 'good-scroll-linear
-         good-scroll-step (round (/ (display-pixel-height) 8)))
+         good-scroll-step (round (/ (display-pixel-height) 15)))
 
   )
+
+;; Org mode Settings
+(setq org-hide-emphasis-markers t)
+(font-lock-add-keywords 'org-mode
+                        '(("^ +\\([-*]\\) "
+                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+(require 'org-bullets)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
