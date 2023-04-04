@@ -53,8 +53,9 @@
 (package! anaconda-mode :disable t)
 (package! company-anaconda :disable t)
 (package! elpy)
-
 (package! good-scroll)
+;;(package! org-roam :disable t)
 (package! org-modern)
 (package! org-modern-indent
   :recipe (:host github :repo "jdtsmith/org-modern-indent"))
+(package! autothemer )

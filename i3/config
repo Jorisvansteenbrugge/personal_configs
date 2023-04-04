@@ -13,11 +13,13 @@ set $mod Mod4
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
-font pango:monospace 8
+#font pango:monospace 8
+#font Iosevka 8
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
-#font pango:DejaVu Sans Mono 8
+font pango:DejaVu Sans Mono 10
+#font pango:Source Sans Pro, IconicIcons 11
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
@@ -55,12 +57,12 @@ bindsym $mod+p exec --no-startup-id $i3lockwall
 #default_border pixel 1
 #default_floating_border pixel 1
 
-for_window [class=".*"] border pixel 0
-#gaps inner all set 20
-#gaps outer current plus 5
-#gaps horizontal current plus 40
-#gaps outer current toggle 60
+#for_window [class=".*"] border pixel 0
+#gaps inner|outer|horizontal|vertical|top|right|bottom|left current|all set|plus|minus|toggle 4
+gaps inner 16
+gaps outer 16
 
+exec --no-startup-id feh --bg-scale /home/joris/Pictures/wallpaper.png
 
 
 # Launch Mega X in float mode
@@ -142,13 +144,20 @@ bindsym $mod+Shift+space floating toggle
 bindsym $mod+space focus mode_toggle
 
 # focus the parent container
-bindsym $mod+a focus parent
+#bindsym $mod+a focus parent
 
 
 #exec --no-startup-id feh --bg-scale ~/.config/i3/background.png
 
 # focus the child container
 #bindsym $mod+d focus child
+
+
+# Only enable gaps on a workspace when there is at least one container
+smart_gaps on
+
+# Only enable outer gaps when there is exactly one container
+smart_gaps inverse_outer
 
 # Define names for default workspaces for which we configure key bindings later on.
 # We use variables to avoid repeating the names in multiple places.
@@ -164,6 +173,8 @@ set $ws9 "9"
 set $ws10 "10: Sys Monitor"
 set $ws99 "99"
 
+set $wsa "α"
+
 # switch to workspace
 bindsym $mod+1 workspace number $ws1
 bindsym $mod+2 workspace number $ws2
@@ -175,6 +186,7 @@ bindsym $mod+7 workspace number $ws7
 bindsym $mod+8 workspace number $ws8
 bindsym $mod+9 workspace number $ws9
 bindsym $mod+0 workspace number $ws10
+bindsym $mod+a workspace number $wsa
 
 # move focused container to workspace
 bindsym $mod+Shift+1 move container to workspace number $ws1
@@ -187,7 +199,6 @@ bindsym $mod+Shift+7 move container to workspace number $ws7
 bindsym $mod+Shift+8 move container to workspace number $ws8
 bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
-
 
 # Move focused workspace to different monitor
 bindsym $mod+Ctrl+greater move workspace to output right

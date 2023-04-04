@@ -82,7 +82,7 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
-(setq-default fill-column 90)
+(setq-default fill-column 100)
 
 (use-package! elpy
   :commands elpy-enable
@@ -111,7 +111,22 @@
 ;;(setq-default TeX-master "master") ; All master files called "master"
 (map! "<escape>" #'doom/escape)
 
+
+
+
 (after! ess
+
+  (defun dtm-ess-modeline-show-busy ()
+  "Display spinner if ESS process is busy.
+   Ref: `ess--tb-start', https://github.com/seagle0128/doom-modeline/issues/410"
+  (setq-local ess-busy-strings (cons "%s" (cdr ess-busy-strings))
+              mode-line-process '("["
+                                  ess--mode-line-process-indicator
+                                  ess--local-mode-line-process-indicator
+                                  "]: "
+                                  (:eval (nth ess--busy-count ess-busy-strings))
+                                  " ")))
+
   (add-hook! 'ess-r-mode-hook (flycheck-mode -1) )
   (defun joris-insert-rassign ()
     (interactive)
@@ -126,6 +141,10 @@
   (map! :map inferior-ess-r-mode-map
         "C-S-m" #'joris-insert-pipe
         "C-<" #'joris-insert-rassign)
+
+   (add-hook! 'inferior-ess-mode-hook
+             #'dtm-ess-modeline-show-busy
+             (visual-line-mode +1))
 )
 
 
@@ -210,5 +229,58 @@ Required because doctor sets `noninteractive' to nil."
 (font-lock-add-keywords 'org-mode
                         '(("^ +\\([-*]\\) "
                            (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-(require 'org-bullets)
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+(setq org-return-follows-link  t)
+;;(require 'org-bullets)
+;;(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+(use-package org-roam
+  :custom
+  (org-roam-directory (file-truename "~/org-roam"))
+  (org-roam-dailies-directory "journals/")
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?" :target
+      (file+head "pages/${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)))
+  )
+
+;;* Programming Languages
+;; General interactive programming buffer settings
+(after! comint
+  (setq ansi-color-for-comint-mode 'filter
+        comint-scroll-to-bottom-on-input t
+        comint-scroll-to-bottom-on-output t
+        comint-move-point-for-output t)
+)
+
+;;(org-roam-db-autosync-mode)
+(setq! citar-bibliography '("/home/joris/org-roam/My Library.bib"))
+
+(after! citar
+  (map! :map citar-map
+        "C-c b" #'citar-insert-citation
+         :map minibuffer-local-map
+         "M-b" #'citar-insert-preset
+         )
+  )
+
+
+
+
+(after! org-roam
+
+  (defun dtm-org-element-at-point-get-content ()
+  "Return the current element's content without properties. Based on `org-mark-element'
+and `org-roam-preview-default-function'."
+  ;; Move to beginning of item to include children
+  (when (org-in-item-p)
+    (org-beginning-of-item))
+  (let* ((element (org-element-at-point))
+         (beg (org-element-property :begin element))
+         (end (org-element-property :end element)))
+    (string-trim (buffer-substring-no-properties beg end))))
+
+  (setq org-roam-preview-function #'dtm-org-element-at-point-get-content)
+
+  )
