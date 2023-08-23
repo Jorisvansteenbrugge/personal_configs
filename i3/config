@@ -13,12 +13,12 @@ set $mod Mod4
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
-#font pango:monospace 8
+font pango:monospace 10
 #font Iosevka 8
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
-font pango:DejaVu Sans Mono 10
+#font pango:DejaVu Sans Mono 8
 #font pango:Source Sans Pro, IconicIcons 11
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
@@ -54,22 +54,49 @@ bindsym $mod+p exec --no-startup-id $i3lockwall
 #
 
 # Disable title bar
-#default_border pixel 1
-#default_floating_border pixel 1
+default_border pixel 1
+default_floating_border pixel 1
 
 #for_window [class=".*"] border pixel 0
 #gaps inner|outer|horizontal|vertical|top|right|bottom|left current|all set|plus|minus|toggle 4
-gaps inner 16
-gaps outer 16
+gaps inner 8
+gaps outer 8
 
 exec --no-startup-id feh --bg-scale /home/joris/Pictures/wallpaper.png
 
 
+
+
+
+#### Custom program Launching modes
+
 # Launch Mega X in float mode
 for_window [class="Mega" instance="mega"] floating enable
+	#Calculator
+for_window [class="Gnome-calculator"] floating enable
 
-#######################################
+# Cytoscape
+## Assign Cytoscape to a specific workspace
+assign [class="install4j-org-cytoscape-launcher-internal-Launcher"] "Cytoscape"
+# Automatically switch to the Cytoscape workspace when opening Cytoscape
+for_window [class="install4j-org-cytoscape-launcher-internal-Launcher"] workspace "Cytoscape"
 
+
+#Emacs
+assign [class="Emacs"] "4: Emacs"
+for_window [class="Emacs"] workspace "4: Emacs"
+
+#Zotero
+assign [class="Zotero"] "Zotero"
+for_window [class="Zotero"] workspace "Zotero"
+
+#MS Teams
+assign [class="Microsoft Teams - Preview"] "MS-Teams"
+for_window [class="Microsoft Teams - Preview"] workspace "MS-Teams"
+######################################
+
+# Move active window to workspace 99, switch to that workspace, move window to middle monitor, and change other monitors to workspaces 98 and 97
+bindsym $mod+Shift+g exec --no-startup-id "i3-msg 'move container to workspace 99'; i3-msg 'workspace 99'; i3-msg 'move container to output middle'; i3-msg 'focus output left'; i3-msg 'workspace 98'; i3-msg 'focus output right'; i3-msg 'workspace 97'"
 
 
 
@@ -172,7 +199,6 @@ set $ws8 "8"
 set $ws9 "9"
 set $ws10 "10: Sys Monitor"
 set $ws99 "99"
-
 set $wsa "α"
 
 # switch to workspace
@@ -186,7 +212,7 @@ bindsym $mod+7 workspace number $ws7
 bindsym $mod+8 workspace number $ws8
 bindsym $mod+9 workspace number $ws9
 bindsym $mod+0 workspace number $ws10
-bindsym $mod+a workspace number $wsa
+bindsym $mod+a workspace $wsa
 
 # move focused container to workspace
 bindsym $mod+Shift+1 move container to workspace number $ws1
@@ -205,29 +231,9 @@ bindsym $mod+Ctrl+greater move workspace to output right
 bindsym $mod+Ctrl+less move workspace to output left
 
 
-#bindsym $mod+q exec "i3-msg move container to workspace number 99"
+# Open a new empty workspace
+bindsym $mod+Shift+n exec --no-startup-id ~/.config/i3/new_empty_workspace.sh
 
-mode "quiet" {
-        # These bindings trigger as soon as you enter the resize mode
-
-        # Move a window in and out the quiet mode
-        bindsym p exec ~/.config/i3/quiet-cmd.py toggle ; mode "default"
-
-        # Resize the window in quiet mode
-        bindsym s exec ~/.config/i3/quiet-cmd.py resize small
-        bindsym m exec ~/.config/i3/quiet-cmd.py resize medium
-        bindsym l exec ~/.config/i3/quiet-cmd.py resize large
-
-        # back to normal
-        bindsym Escape mode "default"
-        bindsym Return mode "default"
-        bindsym Caps_Lock mode "default"
-        bindsym $mod+d mode "default"
-}
-
-#bindsym $mod+q exec $HOME/.config/i3/quiet-cmd.py switch
-bindsym $mod+q mode "quiet"
-#exec_always $HOME/.config/i3/quiet-toggle-bar.py --kill
 
 
 # I3wsr 

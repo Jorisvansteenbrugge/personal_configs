@@ -225,25 +225,106 @@ Required because doctor sets `noninteractive' to nil."
   )
 
 ;; Org mode Settings
+(defun jvs/org-italicize-scientific-names ()
+  "Search and italicize scientific organism names in the current buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "\\<[A-Z]\\.\s[a-z]+" nil t)
+      (add-text-properties (match-beginning 0) (match-end 0) '(face italic)))))
+
+(add-hook 'org-mode-hook 'jvs/org-italicize-scientific-names)
+(add-hook 'before-save-hook 'jvs/org-italicize-scientific-names)
+
+
+
+
 (setq org-hide-emphasis-markers t)
-(font-lock-add-keywords 'org-mode
-                        '(("^ +\\([-*]\\) "
-                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+
+;;(font-lock-add-keywords 'org-mode
+;;                        '(("^ +\\([-*]\\) "
+;;                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+
+
+(defun dtm-org-mode-setup-h ()
+  "Personal org-mode customisation's after mode startup"
+  (unless (dtm-org-limit-styling-p)
+    (setq-local line-spacing dtm-org-line-spacing)
+    (electric-quote-local-mode +1)
+    (+org-pretty-mode +1)
+    (auto-fill-mode +1)
+    (+zen-light-toggle +1)
+    (add-hook! 'evil-insert-state-exit-hook
+               :local #'dtm-insert-exit-fill-paragraph)))
+
+(defun dtm-org-limit-styling-p ()
+  "Return non-nil if limited styling should be applied."
+  (or (doom-temp-buffer-p (current-buffer))
+      (dtm-doom-docs-p)))
+
+(defun dtm-org-get-title-value ()
+  "Returns the value of #+TITLE for the current document"
+  (cadar (org-collect-keywords '("TITLE"))))
+
+(defun dtm-insert-exit-fill-paragraph ()
+  "Perform `org-fill-paragraph' unless el at point is a src block"
+  ;; Check if `auto-fill-mode' is active
+  (when auto-fill-function
+    (unless (memq (org-element-type (org-element-at-point))
+                  '(src-block comment-block))
+      (org-fill-paragraph))))
+
+
+
+(after! org
+  (setq org-ellipsis " ▾"
+        org-indent-indentation-per-level 1
+        org-list-demote-modify-bullet '(("+" . "-") ("-" . "+") ("*" . "+"))
+        org-use-property-inheritance t  ; can cause slowdown when searching
+        org-image-actual-width '(800)   ; default if not ATTR is provided
+        org-agenda-start-day nil
+        org-agenda-span 14
+        org-agenda-time-grid '((daily today require-timed)
+                               (759 1159 1259 1659)
+                               " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+        org-agenda-current-time-string "<- NOW ────────")
+
+  ;; Make headings bold and larger
+  (custom-set-faces!
+    '((org-document-title outline-1 outline-2 outline-3 outline-4 outline-5
+       outline-6 outline-7 outline-8)
+      :weight semi-bold)
+    '(org-document-title :height 1.3)
+    '(outline-1 :height 1.2)
+    '(outline-2 :height 1.1)
+    '(outline-3 :height 1.05))
+
+  ;; Give ellipsis same colour as text
+  (custom-set-faces!
+    '(org-ellipsis :foreground nil :background nil :weight regular)
+    '(org-headline-done :strike-through t))
+
+
+  ;; Enable hard wrapping and automate paragraph filling
+  ;; Allow for double quoting using '' and `` (`` -> “)
+  (add-hook 'org-mode-hook #'dtm-org-mode-setup-h)
+  (add-hook 'org-mode-hook #'org-modern-mode)
+  )
+
+
 
 (setq org-return-follows-link  t)
-;;(require 'org-bullets)
-;;(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+;; (use-package org-bullets
+;;     :config
+;;     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
-(use-package org-roam
-  :custom
-  (org-roam-directory (file-truename "~/org-roam"))
-  (org-roam-dailies-directory "journals/")
-  (org-roam-capture-templates
-   '(("d" "default" plain
-      "%?" :target
-      (file+head "pages/${slug}.org" "#+title: ${title}\n")
-      :unnarrowed t)))
-  )
+
+
+
+
+
 
 ;;* Programming Languages
 ;; General interactive programming buffer settings
@@ -265,8 +346,26 @@ Required because doctor sets `noninteractive' to nil."
          )
   )
 
+(setq org-ref-bibliography-notes "/home/joris/org-roam/notes.org"
+      org-ref-default-bibliography '("/home/joris/org-roam/library.bib"))
+
+(defun jvs/org-ref-format-function (key)
+  (format "[...]"))
+
+(setq org-ref-hover-bibtex-format-function #'jvs/org-ref-format-function)
 
 
+
+(use-package org-roam
+  :custom
+  (org-roam-directory (file-truename "~/org-roam"))
+  (org-roam-dailies-directory "journals/")
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?" :target
+      (file+head "pages/${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)))
+  )
 
 (after! org-roam
 
@@ -284,3 +383,36 @@ and `org-roam-preview-default-function'."
   (setq org-roam-preview-function #'dtm-org-element-at-point-get-content)
 
   )
+
+(after! ispell
+  (setq ispell-dictionary "en_GB"
+        ispell-personal-dictionary "~/org-roam/default.aspel.en.pws")
+  (delete "--run-together" ispell-extra-args))
+
+(after! spell-fu
+  ;; Remove org-block from excluded-faces to enable spell checking in #+CAPTION blocks
+  (when-let ((cell (assq 'org-mode +spell-excluded-faces-alist)))
+    (setcdr cell (cl-remove 'org-block (cdr cell)))))
+
+;; (defun my-correct-previous-spell-error ()
+;;   "Move to the previous spelling error, correct it, and return to the original cursor position."
+;;   (interactive)
+;;     (save-excursion
+;;       (+spell/previous-error)
+;;       (while (not (ispell-word))
+;;         (ispell-previous-word))))
+
+
+(defun dtm-straight-prioritize (dir)
+  "Move straight package DIR to the front of `load-path'."
+  (let ((lib-dir (file-name-concat straight-base-dir "straight"
+                                   straight-build-dir dir)))
+    (when (file-exists-p lib-dir)
+      (setq load-path (cons lib-dir (delete lib-dir load-path))))))
+
+;;;###package org-mode-ox-odt
+(after! doom-packages
+  ;; Ensure `org-mode-ox-odt' takes precedence over org's ox-odt.el.
+  ;; Ref: https://github.com/kjambunathan/org-mode-ox-odt/discussions/133
+  (dtm-straight-prioritize "ox-odt")
+  (setq org-odt-preferred-output-format "docx"))
