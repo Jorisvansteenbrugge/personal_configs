@@ -250,19 +250,14 @@ Required because doctor sets `noninteractive' to nil."
 
 (defun dtm-org-mode-setup-h ()
   "Personal org-mode customisation's after mode startup"
-  (unless (dtm-org-limit-styling-p)
-    (setq-local line-spacing dtm-org-line-spacing)
+
+    ;;(setq-local line-spacing dtm-org-line-spacing)
     (electric-quote-local-mode +1)
     (+org-pretty-mode +1)
     (auto-fill-mode +1)
-    (+zen-light-toggle +1)
-    (add-hook! 'evil-insert-state-exit-hook
-               :local #'dtm-insert-exit-fill-paragraph)))
+    ;;(+zen-light-toggle +1)
+    )
 
-(defun dtm-org-limit-styling-p ()
-  "Return non-nil if limited styling should be applied."
-  (or (doom-temp-buffer-p (current-buffer))
-      (dtm-doom-docs-p)))
 
 (defun dtm-org-get-title-value ()
   "Returns the value of #+TITLE for the current document"
@@ -282,6 +277,8 @@ Required because doctor sets `noninteractive' to nil."
   (setq org-ellipsis " ▾"
         org-indent-indentation-per-level 1
         org-list-demote-modify-bullet '(("+" . "-") ("-" . "+") ("*" . "+"))
+        org-startup-folded t
+        org-return-follows-link t
         org-use-property-inheritance t  ; can cause slowdown when searching
         org-image-actual-width '(800)   ; default if not ATTR is provided
         org-agenda-start-day nil
@@ -307,18 +304,13 @@ Required because doctor sets `noninteractive' to nil."
     '(org-headline-done :strike-through t))
 
 
+
+
   ;; Enable hard wrapping and automate paragraph filling
   ;; Allow for double quoting using '' and `` (`` -> “)
   (add-hook 'org-mode-hook #'dtm-org-mode-setup-h)
   (add-hook 'org-mode-hook #'org-modern-mode)
   )
-
-
-
-(setq org-return-follows-link  t)
-;; (use-package org-bullets
-;;     :config
-;;     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
 
 
@@ -337,7 +329,6 @@ Required because doctor sets `noninteractive' to nil."
 
 ;;(org-roam-db-autosync-mode)
 (setq! citar-bibliography '("/home/joris/org-roam/My Library.bib"))
-
 (after! citar
   (map! :map citar-map
         "C-c b" #'citar-insert-citation

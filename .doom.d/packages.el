@@ -55,9 +55,13 @@
 (package! elpy)
 (package! good-scroll)
 ;;(package! org-roam :disable t)
+
 (package! org-modern)
 (package! org-modern-indent
   :recipe (:host github :repo "jdtsmith/org-modern-indent"))
+(package! org-side-tree)
+(package! org-bullets)
+
 (package! autothemer )
 
 ;;(package! ox-pandoc)
@@ -69,7 +73,6 @@
           :pin "bbc60f68ac190f02da8a100b6fb67cf1c27c53ab"
           :recipe (:host github :repo "magit/with-editor"))
 
-(package! org-bullets)
 
 (package! synosaurus)
 
