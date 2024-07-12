@@ -84,3 +84,10 @@
                    "etc"
                    "docs"
                    "contrib/odt/LibreOffice")))
+
+
+;;Groovy mode (used for Nextflow)
+(package! groovy-mode)
+(package! nextflow-mode :recipe (:host github :repo "emiller88/nextflow-mode"))
+
+(package! csv-mode)

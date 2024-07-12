@@ -328,7 +328,7 @@ Required because doctor sets `noninteractive' to nil."
 )
 
 ;;(org-roam-db-autosync-mode)
-(setq! citar-bibliography '("/home/joris/org-roam/My Library.bib"))
+(setq! citar-bibliography '("~/org-roam/My Library.bib"))
 (after! citar
   (map! :map citar-map
         "C-c b" #'citar-insert-citation
@@ -337,8 +337,8 @@ Required because doctor sets `noninteractive' to nil."
          )
   )
 
-(setq org-ref-bibliography-notes "/home/joris/org-roam/notes.org"
-      org-ref-default-bibliography '("/home/joris/org-roam/library.bib"))
+(setq org-ref-bibliography-notes "~/org-roam/notes.org"
+      org-ref-default-bibliography '("~/org-roam/library.bib"))
 
 (defun jvs/org-ref-format-function (key)
   (format "[...]"))
@@ -407,3 +407,29 @@ and `org-roam-preview-default-function'."
   ;; Ref: https://github.com/kjambunathan/org-mode-ox-odt/discussions/133
   (dtm-straight-prioritize "ox-odt")
   (setq org-odt-preferred-output-format "docx"))
+
+
+
+
+;; Make csv mode only allign the visible region using the keybinding C-c C-C
+(add-hook  'csv-mode-hook  (lambda ()    (define-key csv-mode-map (kbd "C-c C-c")      (defun csv-align-visible (&optional arg)        "Align visible fields"        (interactive "P")        (csv-align-fields nil (window-start) (window-end))))))
+
+;;(require 'color)
+
+;; (defun csv-highlight (&optional separator)
+;;   (interactive (list (when current-prefix-arg (read-char "Separator: "))))
+;;   (font-lock-mode 1)
+;;   (let* ((separator (or separator ?\,))
+;;          (n (count-matches (string separator) (pos-bol) (pos-eol)))
+;;          (colors (cl-loop for i from 0 to 1.0 by (/ 2.0 n)
+;;                           collect (apply #'color-rgb-to-hex
+;;                                          (color-hsl-to-rgb i 0.3 0.5)))))
+;;     (cl-loop for i from 2 to n by 2
+;;              for c in colors
+;;              for r = (format "^\\([^%c\n]+%c\\)\\{%d\\}" separator separator i)
+;;              do (font-lock-add-keywords nil `((,r (1 '(face (:foreground ,c))))))))
+
+;;   (add-hook 'csv-mode-hook 'csv-highlight)
+
+
+
