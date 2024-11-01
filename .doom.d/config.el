@@ -47,7 +47,7 @@
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
+(setq org-directory "~/org-roam")
 
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
@@ -84,25 +84,25 @@
 
 (setq-default fill-column 100)
 
-(use-package! elpy
-  :commands elpy-enable
-  :init
-  (elpy-enable)
-  (advice-add 'python-mode :before #'elpy-enable)
-  :config
-  (setq elpy-shell-starting-directory 'current-directory
-        elpy-modules '(elpy-module-sane-defaults elpy-module-eldoc))
+;; (use-package! elpy
+;;   :commands elpy-enable
+;;   :init
+;;   (elpy-enable)
+;;   (advice-add 'python-mode :before #'elpy-enable)
+;;   :config
+;;   (setq elpy-shell-starting-directory 'current-directory
+;;         elpy-modules '(elpy-module-sane-defaults elpy-module-eldoc))
 
- (set-company-backend! 'python-mode
-    'elpy-company-backend 'company-yasnippet)
-  (set-lookup-handlers! 'python-mode
-    :definition #'elpy-goto-definition
-    :references #'elpy-rgrep-symbol
-    :documentation #'elpy-doc
-    :async t)
+ ;; (set-company-backend! 'python-mode
+  ;;   'elpy-company-backend 'company-yasnippet)
+  ;; (set-lookup-handlers! 'python-mode
+  ;;   :definition #'elpy-goto-definition
+  ;;   :references #'elpy-rgrep-symbol
+  ;;   :documentation #'elpy-doc
+  ;;   :async t)
 
- (map! :map python-mode-map
-        [C-return] #'elpy-shell-send-statement-and-step))
+ ;; (map! :map python-mode-map
+        ;; [C-return] #'elpy-shell-send-statement-and-step))
 
 (after! which-key
   (setq which-key-idle-delay 0.2))
@@ -286,7 +286,9 @@ Required because doctor sets `noninteractive' to nil."
         org-agenda-time-grid '((daily today require-timed)
                                (759 1159 1259 1659)
                                " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-        org-agenda-current-time-string "<- NOW ────────")
+        org-agenda-current-time-string "<- NOW ────────"
+        ;; org-agenda-files "~/org-roam"
+        )
 
   ;; Make headings bold and larger
   (custom-set-faces!
@@ -328,7 +330,7 @@ Required because doctor sets `noninteractive' to nil."
 )
 
 ;;(org-roam-db-autosync-mode)
-(setq! citar-bibliography '("~/org-roam/My Library.bib"))
+(setq! citar-bibliography '("~/org-roam/zotero_library.bib"))
 (after! citar
   (map! :map citar-map
         "C-c b" #'citar-insert-citation
@@ -338,7 +340,7 @@ Required because doctor sets `noninteractive' to nil."
   )
 
 (setq org-ref-bibliography-notes "~/org-roam/notes.org"
-      org-ref-default-bibliography '("~/org-roam/library.bib"))
+      org-ref-default-bibliography '("~/org-roam/zotero_library.bib"))
 
 (defun jvs/org-ref-format-function (key)
   (format "[...]"))
@@ -413,23 +415,3 @@ and `org-roam-preview-default-function'."
 
 ;; Make csv mode only allign the visible region using the keybinding C-c C-C
 (add-hook  'csv-mode-hook  (lambda ()    (define-key csv-mode-map (kbd "C-c C-c")      (defun csv-align-visible (&optional arg)        "Align visible fields"        (interactive "P")        (csv-align-fields nil (window-start) (window-end))))))
-
-;;(require 'color)
-
-;; (defun csv-highlight (&optional separator)
-;;   (interactive (list (when current-prefix-arg (read-char "Separator: "))))
-;;   (font-lock-mode 1)
-;;   (let* ((separator (or separator ?\,))
-;;          (n (count-matches (string separator) (pos-bol) (pos-eol)))
-;;          (colors (cl-loop for i from 0 to 1.0 by (/ 2.0 n)
-;;                           collect (apply #'color-rgb-to-hex
-;;                                          (color-hsl-to-rgb i 0.3 0.5)))))
-;;     (cl-loop for i from 2 to n by 2
-;;              for c in colors
-;;              for r = (format "^\\([^%c\n]+%c\\)\\{%d\\}" separator separator i)
-;;              do (font-lock-add-keywords nil `((,r (1 '(face (:foreground ,c))))))))
-
-;;   (add-hook 'csv-mode-hook 'csv-highlight)
-
-
-
