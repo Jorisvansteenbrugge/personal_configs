@@ -94,7 +94,7 @@
 ;;         elpy-modules '(elpy-module-sane-defaults elpy-module-eldoc))
 
  ;; (set-company-backend! 'python-mode
-  ;;   'elpy-company-backend 'company-yasnippet)
+  ;;   'elpy-company-backend 'company-yasnippet) 
   ;; (set-lookup-handlers! 'python-mode
   ;;   :definition #'elpy-goto-definition
   ;;   :references #'elpy-rgrep-symbol
@@ -112,6 +112,35 @@
 (map! "<escape>" #'doom/escape)
 
 
+(require 'lsp-mode)
+
+;; 1) Zorg dat lsp-mode beschikbaar is
+(require 'lsp-mode)
+
+;; 2) Eenvoudige logger om te zien wat er gebeurt
+(defun joris/log (fmt &rest args)
+  (apply #'message (concat "[nextflow-lsp] " fmt) args))
+
+;; 3) Start LSP in nextflow-mode, maar alleen als hij nog niet draait
+(defun joris/nextflow-start-lsp ()
+  (joris/log "nextflow-mode-hook fired; lsp-mode active? %s" (bound-and-true-p lsp-mode))
+  (unless (bound-and-true-p lsp-mode)
+    (joris/log "starting lsp (deferred)…")
+    (lsp-deferred)))
+
+;; 4) Hook pas toevoegen zodra nextflow-mode geladen is
+(with-eval-after-load 'nextflow-mode
+  (joris/log "installing nextflow-mode-hook")
+  (add-hook 'nextflow-mode-hook #'joris/nextflow-start-lsp))
+
+(defun lsp-auto-for (mode)
+  "Automatically start LSP for a given major MODE when available."
+  (require 'lsp-mode)
+  (with-eval-after-load mode
+    (add-hook (intern (format "%s-hook" mode))
+              (lambda ()
+                (unless (bound-and-true-p lsp-mode)
+                  (lsp-deferred))))))
 
 
 (after! ess
@@ -133,7 +162,7 @@
     (insert "<-"))
   (defun joris-insert-pipe ()
     (interactive)
-    (insert "|>"))
+    (insert "%>%"))
 
   (map! :map ess-r-mode-map
         "C-S-m" #'joris-insert-pipe
@@ -413,5 +442,44 @@ and `org-roam-preview-default-function'."
 
 
 
+;; Use nextflow-mode for Nextflow files and integrate LSP + snippets
+;; (use-package! nextflow-mode
+  ;; :mode "\\.nf\\'"                             ; open .nf in nextflow-mode
+  ;(add-hook 'nextflow-mode-hook #'lsp) ; start LSP on entering nextflow-mode
+  ;; (add-hook 'nextflow-mode-hook #'yas-minor-mode) ; enable yasnippet for templates
+  ;; :config
+  ;; (when (featurep! :tools lsp)
+    ;; Optionally adjust LSP settings if needed:
+    ;; e.g., specify a custom path or version for the Nextflow LS:
+    ;; (setq lsp-nextflow-server-file "/path/to/language-server-all.jar")
+    ;; (setq lsp-nextflow-server-file "/Users/jsteenbr/.config/doom/language-server-all.jar")
+    ;; (setq lsp-nextflow-server-download-url "<custom-url>")
+    ;; )
+  ;; Documentation lookup: use Groovy docs for Nextflow, since Nextflow is Groovy-based
+  ;; (when (featurep! :tools dash)  ; if using Dash/Zeal integration
+    ;; (set-docsets! 'nextflow-mode "Groovy"))
+  ;; )
+
+;; (use-package! nextflow-mode
+;;   :mode (("\\.nf\\'"             . nextflow-mode)
+;;          ("nextflow\\.config\\'" . nextflow-mode))
+;;   :hook ((nextflow-mode . yas-minor-mode)
+;;          (nextflow-mode . lsp!))
+;;   :config
+;;   (setq lsp-nextflow-server-file "/Users/joris/.config/doom/language-server-all.jar"))
+
+
+(use-package! nextflow-mode
+  :mode (("\\.nf\\'"             . nextflow-mode)
+         ("nextflow\\.config\\'" . nextflow-mode))
+  :hook (nextflow-mode . yas-minor-mode)
+  :config
+  (setq lsp-nextflow-server-file "/Users/joris/.config/doom/language-server-all.jar")
+  ;; Doom-conforme manier om LSP te starten zodra buffer volledig klaar is
+  (add-hook 'nextflow-mode-local-vars-hook #'lsp!))
+
+
+;; (lsp-auto-for 'nextflow-mode)
+;;
 ;; Make csv mode only allign the visible region using the keybinding C-c C-C
 (add-hook  'csv-mode-hook  (lambda ()    (define-key csv-mode-map (kbd "C-c C-c")      (defun csv-align-visible (&optional arg)        "Align visible fields"        (interactive "P")        (csv-align-fields nil (window-start) (window-end))))))
