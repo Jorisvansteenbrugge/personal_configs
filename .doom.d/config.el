@@ -8,7 +8,6 @@
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
-
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
 (setq user-full-name "Joris van Steenbrugge"
@@ -26,10 +25,10 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
+(setq doom-font (font-spec :family "Fira Code" :size 13 :weight 'regular))
 
-(setq doom-font (font-spec :family "Iosevka" :width 'expanded :size 11.0))
+
+;; (setq doom-font (font-spec :family "Fira Code" :width 'expanded :size 13.0))
 ;;
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
@@ -47,7 +46,7 @@
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org-roam")
+
 
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
@@ -112,35 +111,55 @@
 (map! "<escape>" #'doom/escape)
 
 
-(require 'lsp-mode)
+;; (require 'lsp-mode)
 
 ;; 1) Zorg dat lsp-mode beschikbaar is
-(require 'lsp-mode)
+;; (require 'lsp-mode)
 
-;; 2) Eenvoudige logger om te zien wat er gebeurt
-(defun joris/log (fmt &rest args)
-  (apply #'message (concat "[nextflow-lsp] " fmt) args))
+
+
 
 ;; 3) Start LSP in nextflow-mode, maar alleen als hij nog niet draait
-(defun joris/nextflow-start-lsp ()
-  (joris/log "nextflow-mode-hook fired; lsp-mode active? %s" (bound-and-true-p lsp-mode))
-  (unless (bound-and-true-p lsp-mode)
-    (joris/log "starting lsp (deferred)…")
-    (lsp-deferred)))
+;; (defun joris/nextflow-start-lsp ()
+  ;; (joris/log "nextflow-mode-hook fired; lsp-mode active? %s" (bound-and-true-p lsp-mode))
+  ;; (unless (bound-and-true-p lsp-mode)
+    ;; (joris/log "starting lsp (deferred)…")
+    ;; (lsp-deferred)))
 
 ;; 4) Hook pas toevoegen zodra nextflow-mode geladen is
-(with-eval-after-load 'nextflow-mode
-  (joris/log "installing nextflow-mode-hook")
-  (add-hook 'nextflow-mode-hook #'joris/nextflow-start-lsp))
+;; (with-eval-after-load 'nextflow-mode
+  ;; (joris/log "installing nextflow-mode-hook")
+  ;; (add-hook 'nextflow-mode-hook #'joris/nextflow-start-lsp))
 
-(defun lsp-auto-for (mode)
-  "Automatically start LSP for a given major MODE when available."
-  (require 'lsp-mode)
-  (with-eval-after-load mode
-    (add-hook (intern (format "%s-hook" mode))
-              (lambda ()
-                (unless (bound-and-true-p lsp-mode)
-                  (lsp-deferred))))))
+;; (defun lsp-auto-for (mode)
+  ;; "Automatically start LSP for a given major MODE when available."
+  ;; (require 'lsp-mode)
+  ;; (with-eval-after-load mode
+    ;; (add-hook (intern (format "%s-hook" mode))
+              ;; (lambda ()
+                ;; (unless (bound-and-true-p lsp-mode)
+                  ;; (lsp-deferred))))))
+
+;; (use-package! nextflow-mode
+  ;; :mode (("\\.nf\\'"             . nextflow-mode)
+         ;; ("nextflow\\.config\\'" . nextflow-mode))
+  ;; :hook (nextflow-mode . yas-minor-mode)
+  ;; :config
+  ;; (setq lsp-nextflow-server-file "/Users/jsteenbr/.config/doom/language-server-all.jar")
+  ;; Doom-conforme manier om LSP te starten zodra buffer volledig klaar is
+  ;; (add-hook 'nextflow-mode-local-vars-hook #'lsp!))
+  ;;
+(use-package! nextflow-mode
+  :mode (("\\.nf\\'"             . nextflow-mode)
+         ("nextflow\\.config\\'" . nextflow-mode))
+  :hook (nextflow-mode . yas-minor-mode)
+  :config
+  (setq lsp-nextflow-server-file "/Users/jsteenbr/.config/doom/language-server-all.jar")
+
+  ;; Start LSP once, predictably
+  (add-hook 'nextflow-mode-hook #'lsp-deferred))
+
+
 
 
 (after! ess
@@ -232,26 +251,26 @@ Required because doctor sets `noninteractive' to nil."
  ;; Group buffers based on perspective/workspace
   (add-hook 'ibuffer-hook #'dtm-ibuffer-group-by-workspace-h))
 
-(use-package! good-scroll
-  :config
-  (good-scroll-mode +1)
-  (defun dtm/good-scroll-down-half ()
-    (interactive)
-    (good-scroll-move (/ (good-scroll--window-usable-height) 2)))
+;; (use-package! good-scroll
+;;   :config
+;;    (good-scroll-mode +1)
+;;   (defun dtm/good-scroll-down-half ()
+;;     (interactive)
+;;     (good-scroll-move (/ (good-scroll--window-usable-height) 2)))
 
 
-  (defun dtm/good-scroll-up-half ()
-    (interactive)
-    (good-scroll-move (/ (good-scroll--window-usable-height) -2)))
-  (map!
-        "C-v" #'dtm/good-scroll-down-half
-        "M-v" #'dtm/good-scroll-up-half)
+;;   (defun dtm/good-scroll-up-half ()
+;;     (interactive)
+;;     (good-scroll-move (/ (good-scroll--window-usable-height) -2)))
+;;   (map!
+;;         "C-v" #'dtm/good-scroll-down-half
+;;         "M-v" #'dtm/good-scroll-up-half)
 
-  (setq! good-scroll-duration .25
-         good-scroll-algorithm 'good-scroll-linear
-         good-scroll-step (round (/ (display-pixel-height) 15)))
+;;   (setq! good-scroll-duration .25
+;;          good-scroll-algorithm 'good-scroll-linear
+;;          good-scroll-step (round (/ (display-pixel-height) 15)))
 
-  )
+;;   )
 
 ;; Org mode Settings
 (defun jvs/org-italicize-scientific-names ()
@@ -302,22 +321,7 @@ Required because doctor sets `noninteractive' to nil."
 
 
 
-(after! org
-  (setq org-ellipsis " ▾"
-        org-indent-indentation-per-level 1
-        org-list-demote-modify-bullet '(("+" . "-") ("-" . "+") ("*" . "+"))
-        org-startup-folded t
-        org-return-follows-link t
-        org-use-property-inheritance t  ; can cause slowdown when searching
-        org-image-actual-width '(800)   ; default if not ATTR is provided
-        org-agenda-start-day nil
-        org-agenda-span 14
-        org-agenda-time-grid '((daily today require-timed)
-                               (759 1159 1259 1659)
-                               " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-        org-agenda-current-time-string "<- NOW ────────"
-        ;; org-agenda-files "~/org-roam"
-        )
+
 
   ;; Make headings bold and larger
   (custom-set-faces!
@@ -337,11 +341,7 @@ Required because doctor sets `noninteractive' to nil."
 
 
 
-  ;; Enable hard wrapping and automate paragraph filling
-  ;; Allow for double quoting using '' and `` (`` -> “)
-  (add-hook 'org-mode-hook #'dtm-org-mode-setup-h)
-  (add-hook 'org-mode-hook #'org-modern-mode)
-  )
+  
 
 
 
@@ -358,18 +358,6 @@ Required because doctor sets `noninteractive' to nil."
         comint-move-point-for-output t)
 )
 
-;;(org-roam-db-autosync-mode)
-(setq! citar-bibliography '("~/org-roam/zotero_library.bib"))
-(after! citar
-  (map! :map citar-map
-        "C-c b" #'citar-insert-citation
-         :map minibuffer-local-map
-         "M-b" #'citar-insert-preset
-         )
-  )
-
-(setq org-ref-bibliography-notes "~/org-roam/notes.org"
-      org-ref-default-bibliography '("~/org-roam/zotero_library.bib"))
 
 (defun jvs/org-ref-format-function (key)
   (format "[...]"))
@@ -378,43 +366,17 @@ Required because doctor sets `noninteractive' to nil."
 
 
 
-(use-package org-roam
-  :custom
-  (org-roam-directory (file-truename "~/org-roam"))
-  (org-roam-dailies-directory "journals/")
-  (org-roam-capture-templates
-   '(("d" "default" plain
-      "%?" :target
-      (file+head "pages/${slug}.org" "#+title: ${title}\n")
-      :unnarrowed t)))
-  )
 
-(after! org-roam
-
-  (defun dtm-org-element-at-point-get-content ()
-  "Return the current element's content without properties. Based on `org-mark-element'
-and `org-roam-preview-default-function'."
-  ;; Move to beginning of item to include children
-  (when (org-in-item-p)
-    (org-beginning-of-item))
-  (let* ((element (org-element-at-point))
-         (beg (org-element-property :begin element))
-         (end (org-element-property :end element)))
-    (string-trim (buffer-substring-no-properties beg end))))
-
-  (setq org-roam-preview-function #'dtm-org-element-at-point-get-content)
-
-  )
 
 (after! ispell
   (setq ispell-dictionary "en_GB"
         ispell-personal-dictionary "~/org-roam/default.aspel.en.pws")
   (delete "--run-together" ispell-extra-args))
 
-(after! spell-fu
+;; (after! spell-fu
   ;; Remove org-block from excluded-faces to enable spell checking in #+CAPTION blocks
-  (when-let ((cell (assq 'org-mode +spell-excluded-faces-alist)))
-    (setcdr cell (cl-remove 'org-block (cdr cell)))))
+  ;; (when-let ((cell (assq 'org-mode +spell-excluded-faces-alist)))
+    ;; (setcdr cell (cl-remove 'org-block (cdr cell)))))
 
 ;; (defun my-correct-previous-spell-error ()
 ;;   "Move to the previous spelling error, correct it, and return to the original cursor position."
@@ -442,44 +404,63 @@ and `org-roam-preview-default-function'."
 
 
 
-;; Use nextflow-mode for Nextflow files and integrate LSP + snippets
-;; (use-package! nextflow-mode
-  ;; :mode "\\.nf\\'"                             ; open .nf in nextflow-mode
-  ;(add-hook 'nextflow-mode-hook #'lsp) ; start LSP on entering nextflow-mode
-  ;; (add-hook 'nextflow-mode-hook #'yas-minor-mode) ; enable yasnippet for templates
-  ;; :config
-  ;; (when (featurep! :tools lsp)
-    ;; Optionally adjust LSP settings if needed:
-    ;; e.g., specify a custom path or version for the Nextflow LS:
-    ;; (setq lsp-nextflow-server-file "/path/to/language-server-all.jar")
-    ;; (setq lsp-nextflow-server-file "/Users/jsteenbr/.config/doom/language-server-all.jar")
-    ;; (setq lsp-nextflow-server-download-url "<custom-url>")
-    ;; )
-  ;; Documentation lookup: use Groovy docs for Nextflow, since Nextflow is Groovy-based
-  ;; (when (featurep! :tools dash)  ; if using Dash/Zeal integration
-    ;; (set-docsets! 'nextflow-mode "Groovy"))
-  ;; )
-
-;; (use-package! nextflow-mode
-;;   :mode (("\\.nf\\'"             . nextflow-mode)
-;;          ("nextflow\\.config\\'" . nextflow-mode))
-;;   :hook ((nextflow-mode . yas-minor-mode)
-;;          (nextflow-mode . lsp!))
-;;   :config
-;;   (setq lsp-nextflow-server-file "/Users/joris/.config/doom/language-server-all.jar"))
-
-
-(use-package! nextflow-mode
-  :mode (("\\.nf\\'"             . nextflow-mode)
-         ("nextflow\\.config\\'" . nextflow-mode))
-  :hook (nextflow-mode . yas-minor-mode)
-  :config
-  (setq lsp-nextflow-server-file "/Users/joris/.config/doom/language-server-all.jar")
-  ;; Doom-conforme manier om LSP te starten zodra buffer volledig klaar is
-  (add-hook 'nextflow-mode-local-vars-hook #'lsp!))
-
 
 ;; (lsp-auto-for 'nextflow-mode)
 ;;
 ;; Make csv mode only allign the visible region using the keybinding C-c C-C
 (add-hook  'csv-mode-hook  (lambda ()    (define-key csv-mode-map (kbd "C-c C-c")      (defun csv-align-visible (&optional arg)        "Align visible fields"        (interactive "P")        (csv-align-fields nil (window-start) (window-end))))))
+
+
+(defun joris/ibuffer-overview-all ()
+  (interactive)
+  (require 'ibuffer)
+  (ibuffer nil "*Ibuffer*")
+  (with-current-buffer "*Ibuffer*"
+    (dtm-ibuffer-group-by-workspace-h)
+    (ibuffer-update nil t)))
+
+(defun joris/ibuffer-overview-here ()
+  (interactive)
+  (require 'ibuffer)
+  (ibuffer nil "*Ibuffer*")
+  (with-current-buffer "*Ibuffer*"
+    (dtm-ibuffer-group-by-workspace-h)
+    (ibuffer-filter-by-persp (safe-persp-name (get-frame-persp)))
+    (ibuffer-update nil t)))
+
+
+(defun joris/vterm--run (name cmd)
+  "Open or reuse vterm buffer NAME and run CMD."
+  (require 'vterm)
+  (let* ((bufname (format "*vterm:%s*" name))
+         (buf (get-buffer bufname)))
+    (if (buffer-live-p buf)
+        (pop-to-buffer buf)
+      (vterm bufname))
+    (when (and cmd (not (string-empty-p cmd)))
+      (vterm-send-string cmd)
+      (vterm-send-return))))
+
+(defun joris/vterm-htop ()
+  "Open/reuse a vterm and run htop."
+  (interactive)
+  (joris/vterm--run "htop" "htop"))
+
+(defun joris/vterm-mequeue ()
+  "Open/reuse a vterm and run htop."
+  (interactive)
+  (joris/vterm--run "ssh" "ssh hpc -T 'mequeue'"))
+
+
+(defvar joris/overview-map (make-sparse-keymap)
+  "Joris overview prefix map.")
+(define-key global-map (kbd "C-c b") joris/overview-map)
+
+(define-key joris/overview-map (kbd "b") #'joris/ibuffer-overview-here)
+(define-key joris/overview-map (kbd "B") #'joris/ibuffer-overview-all)
+(define-key joris/overview-map (kbd "h") #'joris/vterm-htop)
+(define-key joris/overview-map (kbd "q") #'joris/vterm-mequeue)
+
+(after! which-key
+  (which-key-add-key-based-replacements
+    "C-c b" "Joris Overview"))
