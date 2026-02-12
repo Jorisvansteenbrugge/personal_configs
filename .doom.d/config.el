@@ -83,25 +83,6 @@
 
 (setq-default fill-column 100)
 
-;; (use-package! elpy
-;;   :commands elpy-enable
-;;   :init
-;;   (elpy-enable)
-;;   (advice-add 'python-mode :before #'elpy-enable)
-;;   :config
-;;   (setq elpy-shell-starting-directory 'current-directory
-;;         elpy-modules '(elpy-module-sane-defaults elpy-module-eldoc))
-
- ;; (set-company-backend! 'python-mode
-  ;;   'elpy-company-backend 'company-yasnippet) 
-  ;; (set-lookup-handlers! 'python-mode
-  ;;   :definition #'elpy-goto-definition
-  ;;   :references #'elpy-rgrep-symbol
-  ;;   :documentation #'elpy-doc
-  ;;   :async t)
-
- ;; (map! :map python-mode-map
-        ;; [C-return] #'elpy-shell-send-statement-and-step))
 
 (after! which-key
   (setq which-key-idle-delay 0.2))
@@ -111,44 +92,6 @@
 (map! "<escape>" #'doom/escape)
 
 
-;; (require 'lsp-mode)
-
-;; 1) Zorg dat lsp-mode beschikbaar is
-;; (require 'lsp-mode)
-
-
-
-
-;; 3) Start LSP in nextflow-mode, maar alleen als hij nog niet draait
-;; (defun joris/nextflow-start-lsp ()
-  ;; (joris/log "nextflow-mode-hook fired; lsp-mode active? %s" (bound-and-true-p lsp-mode))
-  ;; (unless (bound-and-true-p lsp-mode)
-    ;; (joris/log "starting lsp (deferred)…")
-    ;; (lsp-deferred)))
-
-;; 4) Hook pas toevoegen zodra nextflow-mode geladen is
-;; (with-eval-after-load 'nextflow-mode
-  ;; (joris/log "installing nextflow-mode-hook")
-  ;; (add-hook 'nextflow-mode-hook #'joris/nextflow-start-lsp))
-
-;; (defun lsp-auto-for (mode)
-  ;; "Automatically start LSP for a given major MODE when available."
-  ;; (require 'lsp-mode)
-  ;; (with-eval-after-load mode
-    ;; (add-hook (intern (format "%s-hook" mode))
-              ;; (lambda ()
-                ;; (unless (bound-and-true-p lsp-mode)
-                  ;; (lsp-deferred))))))
-
-;; (use-package! nextflow-mode
-  ;; :mode (("\\.nf\\'"             . nextflow-mode)
-         ;; ("nextflow\\.config\\'" . nextflow-mode))
-  ;; :hook (nextflow-mode . yas-minor-mode)
-  ;; :config
-  ;; (setq lsp-nextflow-server-file "/Users/jsteenbr/.config/doom/language-server-all.jar")
-  ;; Doom-conforme manier om LSP te starten zodra buffer volledig klaar is
-  ;; (add-hook 'nextflow-mode-local-vars-hook #'lsp!))
-  ;;
 (use-package! nextflow-mode
   :mode (("\\.nf\\'"             . nextflow-mode)
          ("nextflow\\.config\\'" . nextflow-mode))
@@ -251,101 +194,26 @@ Required because doctor sets `noninteractive' to nil."
  ;; Group buffers based on perspective/workspace
   (add-hook 'ibuffer-hook #'dtm-ibuffer-group-by-workspace-h))
 
-;; (use-package! good-scroll
-;;   :config
-;;    (good-scroll-mode +1)
-;;   (defun dtm/good-scroll-down-half ()
-;;     (interactive)
-;;     (good-scroll-move (/ (good-scroll--window-usable-height) 2)))
+(use-package! good-scroll
+  :config
+   (good-scroll-mode +1)
+  (defun dtm/good-scroll-down-half ()
+    (interactive)
+    (good-scroll-move (/ (good-scroll--window-usable-height) 2)))
 
 
-;;   (defun dtm/good-scroll-up-half ()
-;;     (interactive)
-;;     (good-scroll-move (/ (good-scroll--window-usable-height) -2)))
-;;   (map!
-;;         "C-v" #'dtm/good-scroll-down-half
-;;         "M-v" #'dtm/good-scroll-up-half)
+  (defun dtm/good-scroll-up-half ()
+    (interactive)
+    (good-scroll-move (/ (good-scroll--window-usable-height) -2)))
+  (map!
+        "C-v" #'dtm/good-scroll-down-half
+        "M-v" #'dtm/good-scroll-up-half)
 
-;;   (setq! good-scroll-duration .25
-;;          good-scroll-algorithm 'good-scroll-linear
-;;          good-scroll-step (round (/ (display-pixel-height) 15)))
+  (setq! good-scroll-duration .25
+         good-scroll-algorithm 'good-scroll-linear
+         good-scroll-step (round (/ (display-pixel-height) 15)))
 
-;;   )
-
-;; Org mode Settings
-(defun jvs/org-italicize-scientific-names ()
-  "Search and italicize scientific organism names in the current buffer."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward "\\<[A-Z]\\.\s[a-z]+" nil t)
-      (add-text-properties (match-beginning 0) (match-end 0) '(face italic)))))
-
-(add-hook 'org-mode-hook 'jvs/org-italicize-scientific-names)
-(add-hook 'before-save-hook 'jvs/org-italicize-scientific-names)
-
-
-
-
-(setq org-hide-emphasis-markers t)
-
-
-;;(font-lock-add-keywords 'org-mode
-;;                        '(("^ +\\([-*]\\) "
-;;                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-
-
-
-(defun dtm-org-mode-setup-h ()
-  "Personal org-mode customisation's after mode startup"
-
-    ;;(setq-local line-spacing dtm-org-line-spacing)
-    (electric-quote-local-mode +1)
-    (+org-pretty-mode +1)
-    (auto-fill-mode +1)
-    ;;(+zen-light-toggle +1)
-    )
-
-
-(defun dtm-org-get-title-value ()
-  "Returns the value of #+TITLE for the current document"
-  (cadar (org-collect-keywords '("TITLE"))))
-
-(defun dtm-insert-exit-fill-paragraph ()
-  "Perform `org-fill-paragraph' unless el at point is a src block"
-  ;; Check if `auto-fill-mode' is active
-  (when auto-fill-function
-    (unless (memq (org-element-type (org-element-at-point))
-                  '(src-block comment-block))
-      (org-fill-paragraph))))
-
-
-
-
-
-  ;; Make headings bold and larger
-  (custom-set-faces!
-    '((org-document-title outline-1 outline-2 outline-3 outline-4 outline-5
-       outline-6 outline-7 outline-8)
-      :weight semi-bold)
-    '(org-document-title :height 1.3)
-    '(outline-1 :height 1.2)
-    '(outline-2 :height 1.1)
-    '(outline-3 :height 1.05))
-
-  ;; Give ellipsis same colour as text
-  (custom-set-faces!
-    '(org-ellipsis :foreground nil :background nil :weight regular)
-    '(org-headline-done :strike-through t))
-
-
-
-
-  
-
-
-
-
+  )
 
 
 
@@ -359,12 +227,6 @@ Required because doctor sets `noninteractive' to nil."
 )
 
 
-(defun jvs/org-ref-format-function (key)
-  (format "[...]"))
-
-(setq org-ref-hover-bibtex-format-function #'jvs/org-ref-format-function)
-
-
 
 
 
@@ -373,18 +235,6 @@ Required because doctor sets `noninteractive' to nil."
         ispell-personal-dictionary "~/org-roam/default.aspel.en.pws")
   (delete "--run-together" ispell-extra-args))
 
-;; (after! spell-fu
-  ;; Remove org-block from excluded-faces to enable spell checking in #+CAPTION blocks
-  ;; (when-let ((cell (assq 'org-mode +spell-excluded-faces-alist)))
-    ;; (setcdr cell (cl-remove 'org-block (cdr cell)))))
-
-;; (defun my-correct-previous-spell-error ()
-;;   "Move to the previous spelling error, correct it, and return to the original cursor position."
-;;   (interactive)
-;;     (save-excursion
-;;       (+spell/previous-error)
-;;       (while (not (ispell-word))
-;;         (ispell-previous-word))))
 
 
 (defun dtm-straight-prioritize (dir)
@@ -394,19 +244,12 @@ Required because doctor sets `noninteractive' to nil."
     (when (file-exists-p lib-dir)
       (setq load-path (cons lib-dir (delete lib-dir load-path))))))
 
-;;;###package org-mode-ox-odt
-(after! doom-packages
-  ;; Ensure `org-mode-ox-odt' takes precedence over org's ox-odt.el.
-  ;; Ref: https://github.com/kjambunathan/org-mode-ox-odt/discussions/133
-  (dtm-straight-prioritize "ox-odt")
-  (setq org-odt-preferred-output-format "docx"))
 
 
 
 
 
-;; (lsp-auto-for 'nextflow-mode)
-;;
+
 ;; Make csv mode only allign the visible region using the keybinding C-c C-C
 (add-hook  'csv-mode-hook  (lambda ()    (define-key csv-mode-map (kbd "C-c C-c")      (defun csv-align-visible (&optional arg)        "Align visible fields"        (interactive "P")        (csv-align-fields nil (window-start) (window-end))))))
 
