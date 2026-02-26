@@ -25,7 +25,7 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-(setq doom-font (font-spec :family "Fira Code" :size 13 :weight 'regular))
+(setq doom-font (font-spec :family "Fira Code" :size 11 :weight 'regular))
 
 
 ;; (setq doom-font (font-spec :family "Fira Code" :width 'expanded :size 13.0))
@@ -102,8 +102,99 @@
   ;; Start LSP once, predictably
   (add-hook 'nextflow-mode-hook #'lsp-deferred))
 
+(require 'cl-lib)
 
+;;(require 'imenu)
 
+(defun joris/nextflow-imenu-regex-create-index ()
+  "Imenu index for Nextflow (DSL2) using regexes."
+  (imenu--generic-function
+   '(("Process"  "^\\s-*process\\s-+\\([A-Za-z0-9_]+\\)\\s-*{" 1)
+     ("Workflow" "^\\s-*workflow\\s-+\\([A-Za-z0-9_]+\\)\\s-*{" 1)
+     ("Workflow" "^\\s-*workflow\\s-*{" 0) ; unnamed workflow
+     ("Include"  "^\\s-*include\\s-+\\(.+?\\)\\s-+from\\s-+['\"].+['\"]" 1)
+     ("Def"      "^\\s-*def\\s-+\\([A-Za-z0-9_]+\\)\\s-*(" 1)
+     ;; Optional: heuristic for invocations/calls (can be noisy)
+     ("Call"     "^\\s-*\\([A-Z][A-Z0-9_]+\\)\\s-*(" 1)
+     )))
+
+(defun joris/nextflow-imenu-use-regex ()
+  "Force regex-based imenu in Nextflow buffers (disable LSP imenu)."
+  ;; Disable LSP's imenu integration just for this buffer
+  (when (boundp 'lsp-enable-imenu)
+    (setq-local lsp-enable-imenu nil))
+  ;; Override imenu index builder
+  (setq-local imenu-create-index-function #'joris/nextflow-imenu-regex-create-index)
+  ;; Clean cached index so it rebuilds
+  (setq-local imenu--index-alist nil))
+
+(add-hook 'nextflow-mode-hook #'joris/nextflow-imenu-use-regex)
+
+(after! lsp-mode
+  (defvar joris/lsp-imenu--last-buffer nil)
+
+  (defun joris/lsp-imenu-refresh-on-nextflow-switch ()
+    "Refresh LSP imenu when switching to a Nextflow buffer."
+    (when (and (derived-mode-p 'nextflow-mode)
+               (bound-and-true-p lsp-mode)
+               (not (eq (current-buffer) joris/lsp-imenu--last-buffer)))
+      (setq joris/lsp-imenu--last-buffer (current-buffer))
+      (ignore-errors (lsp-ui-imenu--refresh))))
+
+  (add-hook 'buffer-list-update-hook #'joris/lsp-imenu-refresh-on-nextflow-switch))
+
+(after! lsp-ui
+  (defvar joris/lsp-ui-imenu-opened-this-session nil)
+  (defvar joris/lsp-ui-imenu-open-timer nil)
+
+  (defun joris/nextflow-open-lsp-ui-imenu-once ()
+    "Auto-open lsp-ui-imenu once per session, after LSP is ready."
+    (when (and (not joris/lsp-ui-imenu-opened-this-session)
+               (derived-mode-p 'nextflow-mode))
+      (when (timerp joris/lsp-ui-imenu-open-timer)
+        (cancel-timer joris/lsp-ui-imenu-open-timer))
+      (setq joris/lsp-ui-imenu-open-timer
+            (run-at-time
+             0.4 nil
+             (lambda ()
+               (when (and (not joris/lsp-ui-imenu-opened-this-session)
+                          (derived-mode-p 'nextflow-mode)
+                          (bound-and-true-p lsp-mode)
+                          (fboundp 'lsp-workspaces)
+                          (lsp-workspaces))
+                 (setq joris/lsp-ui-imenu-opened-this-session t)
+                 ;; Enable the mode (no args) and open the window
+                 (setq lsp-ui-imenu-mode t)
+                 (ignore-errors (lsp-ui-imenu))))))))
+
+  (add-hook 'nextflow-mode-hook #'joris/nextflow-open-lsp-ui-imenu-once))
+
+(after! ibuffer
+  (require 'ibuffer)
+
+  (defun joris/ibuffer-pretty-name (buf)
+    "Return a nicer display name for BUF for ibuffer."
+    (with-current-buffer buf
+      (if-let ((f buffer-file-name))
+          (let* ((fname  (file-name-nondirectory f))
+                 (parent (file-name-nondirectory
+                          (directory-file-name (file-name-directory f)))))
+            (if (string= fname "main.nf")
+                (format "%s/%s" parent fname)
+              fname))
+        (buffer-name buf))))
+
+  (define-ibuffer-column joris-name
+    (:name "Name" :inline t)
+    (joris/ibuffer-pretty-name buffer))
+
+  ;; Use our column instead of the default 'name'
+  (setq ibuffer-formats
+        '((mark modified read-only locked
+                " " (joris-name 35 35 :left :elide)
+                " " (size 9 -1 :right)
+                " " (mode 16 16 :left :elide)
+                " " filename-and-process)))))
 
 (after! ess
 
